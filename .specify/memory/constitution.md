@@ -1,50 +1,109 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+==================
+Version change: (none) → 1.0.0 (initial ratification)
+Modified principles: N/A (initial creation)
+Added sections:
+  - Core Principles: I. Security-First Development (NON-NEGOTIABLE), II. Maintainability
+    Through Phased Scope Discipline, III. Code Quality & Consistency, IV. Test-First for
+    Networked & Parsing Logic (NON-NEGOTIABLE from Extended-MVP onward), V. Simplicity & YAGNI
+  - Security & Technology Constraints
+  - Development Workflow & Quality Gates
+  - Governance
+Removed sections: none (placeholders only)
+Templates requiring updates:
+  - .specify/templates/plan-template.md: ⚠ pending manual review (verify Constitution Check
+    gate references these principle names)
+  - .specify/templates/spec-template.md: ✅ no principle-specific references found
+  - .specify/templates/tasks-template.md: ✅ no principle-specific references found
+Follow-up TODOs: none
+-->
+
+# RSSFeedReader Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Security-First Development (NON-NEGOTIABLE)
+All external input (feed URLs, HTTP responses, syndication payloads, rendered content) MUST be
+treated as untrusted. The MVP's explicit exception of skipping feed-URL validation MUST NOT be
+extended to any other trust boundary. The backend MUST enforce an explicit CORS origin allowlist
+(no wildcard `*` origins) sourced from configuration, not hardcoded per environment. Any HTML or
+rich content rendered from feed sources (post-MVP) MUST be sanitized (e.g., via an HTML sanitizer)
+before rendering to prevent XSS. No secrets, connection strings, or API keys MAY be committed to
+source control; environment-specific values MUST use configuration files, user-secrets, or
+environment variables.
+Rationale: This app consumes untrusted external content by design (arbitrary feed URLs and XML
+payloads). Security must be designed in from the MVP forward so later phases do not retrofit it
+as an afterthought.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Maintainability Through Phased Scope Discipline
+Implementation MUST match the current phase (MVP, Extended-MVP, or Post-MVP) as defined in
+`StakeholderDocuments/ProjectGoals.md` and `StakeholderDocuments/AppFeatures.md`. Features from a
+later phase MUST NOT be implemented early, and MVP simplifications (in-memory storage, no URL
+validation, no persistence) MUST NOT be silently expanded without an explicit, documented phase
+transition. Code MUST separate backend and frontend responsibilities so later phases (persistence,
+background polling, advanced features) can be added incrementally without rewriting existing MVP
+code. Any deviation from the phased plan MUST be justified in the relevant spec or plan document.
+Rationale: The stakeholder documents define an intentional MVP → Extended-MVP → Post-MVP
+progression; skipping ahead increases complexity risk and undermines the stated goal of a fast,
+minimal MVP.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Code Quality & Consistency
+Code MUST follow standard .NET/C# conventions (naming, nullable reference types, `async`/`await`
+for I/O) and idiomatic Blazor component patterns. Environment-specific values (API base URL,
+ports, CORS origins) MUST be read from configuration, never hardcoded, consistent with
+`StakeholderDocuments/TechStack.md`. Default template/demo scaffold code (e.g., Blazor's
+`Home.razor`, `Counter.razor`, `Weather.razor`) MUST be removed before feature work begins, and
+routing MUST be verified conflict-free before implementation continues.
+Rationale: Consistency reduces onboarding friction and prevents the runtime routing and
+configuration bugs already identified as recurring pitfalls in this stack.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Test-First for Networked & Parsing Logic (NON-NEGOTIABLE from Extended-MVP onward)
+Once feed fetching, parsing, or any network/error-handling logic is introduced (Extended-MVP and
+later), automated tests (xUnit) MUST be written for that logic before or alongside
+implementation. The pure in-memory MVP subscription-list logic (no network, no parsing) is exempt.
+Known-good test feeds (e.g., the .NET blog RSS feed referenced in the stakeholder docs) MUST be
+used to validate parsing behavior before merging feed-fetching features.
+Rationale: Network and parsing code carries the highest risk of runtime failures and security
+issues; testing is deferred only where the stakeholder docs explicitly deem it unnecessary
+(pure in-memory MVP with no network calls).
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Simplicity & YAGNI
+Persistence, background services, authentication, or multi-user support MUST NOT be introduced
+until the corresponding phase (Post-MVP) is explicitly started; each phase's stated MUST/MAY/MUST
+NOT constraints in `AppFeatures.md` are binding. The simplest solution that satisfies the current
+phase's explicit requirements MUST be preferred over speculative generalization.
+Rationale: This project is explicitly a fast-moving proof-of-concept; premature complexity
+contradicts the stated delivery approach and risks effort spent on features that may never be
+needed.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Security & Technology Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+The backend MUST be an ASP.NET Core Web API and the frontend MUST be Blazor WebAssembly, per
+`TechStack.md`. CORS MUST use an explicit origin allowlist matching the frontend's configured
+ports; wildcard origins are prohibited. Dependencies MUST be added only when required by the
+current phase (e.g., `System.ServiceModel.Syndication` and an `HttpClient` registration are
+introduced only at Extended-MVP, not earlier). Any future HTML rendering of feed content MUST go
+through a sanitization library before being shown to users. No user-supplied data may be
+interpolated into logs, headers, or responses without appropriate encoding.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow & Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Before starting feature implementation for a phase, the Blazor template cleanup checklist in
+`TechStack.md` (removal of demo pages, single root route, clean build) MUST be verified complete.
+Before testing any phase, the port/CORS/configuration consistency checklist in `TechStack.md`
+(backend port, frontend port, `ApiBaseUrl`, CORS origins) MUST be verified. Every spec, plan, or
+task produced by Spec Kit commands MUST state which phase (MVP, Extended-MVP, or Post-MVP) it
+targets, and MUST NOT introduce work belonging to a later phase without explicit justification.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes ad hoc practices for this project. Amendments MUST update this file
+and its Sync Impact Report, and MUST bump the version according to semantic versioning: MAJOR for
+backward-incompatible principle removals or redefinitions, MINOR for new principles or materially
+expanded guidance, PATCH for clarifications and wording fixes. All specs, plans, and tasks
+generated by Spec Kit commands MUST verify compliance with these principles before implementation
+proceeds; any complexity that goes beyond the current phase MUST be explicitly justified in the
+relevant plan.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-09-23 | **Last Amended**: 2026-09-23
