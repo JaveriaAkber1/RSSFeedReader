@@ -29,17 +29,17 @@ testing of each story.
 
 **Purpose**: Project initialization and basic structure per plan.md's Project Structure section
 
-- [ ] T001 Create `backend/RSSFeedReader.Api` (ASP.NET Core Web API) and `frontend/RSSFeedReader.UI`
+- [X] T001 Create `backend/RSSFeedReader.Api` (ASP.NET Core Web API) and `frontend/RSSFeedReader.UI`
       (Blazor WebAssembly) projects per plan.md's Project Structure, and add both to a solution
       file at the repository root
-- [ ] T002 [P] Configure backend port in `backend/RSSFeedReader.Api/Properties/launchSettings.json`
+- [X] T002 [P] Configure backend port in `backend/RSSFeedReader.Api/Properties/launchSettings.json`
       to `http://localhost:5151` per research.md decision #4
-- [ ] T003 [P] Configure frontend ports in
+- [X] T003 [P] Configure frontend ports in
       `frontend/RSSFeedReader.UI/Properties/launchSettings.json` to `http://localhost:5213` /
       `https://localhost:7025` per research.md decision #4
-- [ ] T004 [P] Configure `ApiBaseUrl` in `frontend/RSSFeedReader.UI/wwwroot/appsettings.json` to
+- [X] T004 [P] Configure `ApiBaseUrl` in `frontend/RSSFeedReader.UI/wwwroot/appsettings.json` to
       point at the backend's configured port (`http://localhost:5151`)
-- [ ] T005 Remove Blazor template demo pages (`Home.razor`, `Counter.razor`, `Weather.razor`) from
+- [X] T005 Remove Blazor template demo pages (`Home.razor`, `Counter.razor`, `Weather.razor`) from
       `frontend/RSSFeedReader.UI/Pages/` per Constitution Principle III (default scaffold code MUST
       be removed before feature work begins)
 
@@ -51,27 +51,27 @@ testing of each story.
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 [P] Create `Subscription` model in `backend/RSSFeedReader.Api/Models/Subscription.cs` as
+- [X] T006 [P] Create `Subscription` model in `backend/RSSFeedReader.Api/Models/Subscription.cs` as
       `public record Subscription(string Url);` per data-model.md
-- [ ] T007 Create `ISubscriptionService` interface in
+- [X] T007 Create `ISubscriptionService` interface in
       `backend/RSSFeedReader.Api/Services/ISubscriptionService.cs` with methods to add a
       subscription by URL and to return all subscriptions in insertion order (depends on T006)
-- [ ] T008 Implement `InMemorySubscriptionService` in
+- [X] T008 Implement `InMemorySubscriptionService` in
       `backend/RSSFeedReader.Api/Services/InMemorySubscriptionService.cs` backed by a singleton
       `List<Subscription>` guarded by a lock for thread safety; the add operation MUST reject a
       `Url` that "MUST NOT be null, empty, or whitespace-only" (data-model.md validation rules,
       FR-005) without adding an entry, and MUST NOT de-duplicate — "The same URL text MAY appear
       more than once in the list; each submission is added as a separate entry" (depends on T007)
-- [ ] T009 Register `InMemorySubscriptionService` as a singleton and configure a CORS policy in
+- [X] T009 Register `InMemorySubscriptionService` as a singleton and configure a CORS policy in
       `backend/RSSFeedReader.Api/Program.cs` that allow-lists exactly the frontend origins
       (`http://localhost:5213`, `https://localhost:7025`) read from `appsettings.json` — no
       wildcard (`*`) origins, per Constitution Principle I and contracts/subscriptions-api.md's CORS
       section (depends on T008)
-- [ ] T010 [P] Create `SubscriptionApiClient` in
+- [X] T010 [P] Create `SubscriptionApiClient` in
       `frontend/RSSFeedReader.UI/Services/SubscriptionApiClient.cs` wrapping `HttpClient`, and
       register it with its base address set to `ApiBaseUrl` in
       `frontend/RSSFeedReader.UI/Program.cs`
-- [ ] T011 Update `frontend/RSSFeedReader.UI/Layout/NavMenu.razor` to remove demo links and verify
+- [X] T011 Update `frontend/RSSFeedReader.UI/Layout/NavMenu.razor` to remove demo links and verify
       exactly one page uses `@page "/"` (Constitution Principle III routing check)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin
@@ -88,17 +88,17 @@ value now appears in the subscription list.
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Add `POST /api/subscriptions` minimal API endpoint in
+- [X] T012 [P] [US1] Add `POST /api/subscriptions` minimal API endpoint in
       `backend/RSSFeedReader.Api/Program.cs` that reads `{ "url": "string" }`, calls
       `InMemorySubscriptionService`, and returns `201 Created` with `{ "url": "string" }` when
       `url` is non-blank, or `400 Bad Request` with `{ "error": "url must not be blank" }` when
       `url` is "missing, empty, or whitespace-only (FR-005)" per contracts/subscriptions-api.md
       (depends on T009)
-- [ ] T013 [US1] Add an `AddSubscriptionAsync(string url)` method to
+- [X] T013 [US1] Add an `AddSubscriptionAsync(string url)` method to
       `frontend/RSSFeedReader.UI/Services/SubscriptionApiClient.cs` that POSTs `{ "url": url }` to
       `/api/subscriptions` and returns the created subscription on `201`, or indicates failure on
       `400` (depends on T010, T012)
-- [ ] T014 [US1] Create `Subscriptions.razor` page in
+- [X] T014 [US1] Create `Subscriptions.razor` page in
       `frontend/RSSFeedReader.UI/Pages/Subscriptions.razor` with `@page "/"`, a URL text input, and
       an add control that calls `AddSubscriptionAsync`; on success, append the returned
       subscription to the displayed list immediately with no page reload ("update the displayed
@@ -123,15 +123,15 @@ always matches what has been added so far in the session.
 
 ### Implementation for User Story 2
 
-- [ ] T015 [P] [US2] Add `GET /api/subscriptions` minimal API endpoint in
+- [X] T015 [P] [US2] Add `GET /api/subscriptions` minimal API endpoint in
       `backend/RSSFeedReader.Api/Program.cs` that returns `200 OK` with
       `[{ "url": "string" }, ...]` — "Returns an empty array (`[]`) when no subscriptions have been
       added yet" — always in insertion order (SC-002), per contracts/subscriptions-api.md (depends
       on T009)
-- [ ] T016 [US2] Add a `GetSubscriptionsAsync()` method to
+- [X] T016 [US2] Add a `GetSubscriptionsAsync()` method to
       `frontend/RSSFeedReader.UI/Services/SubscriptionApiClient.cs` that GETs
       `/api/subscriptions` and returns the list of subscriptions (depends on T010, T015)
-- [ ] T017 [US2] In `Subscriptions.razor`'s `OnInitializedAsync`, call `GetSubscriptionsAsync` to
+- [X] T017 [US2] In `Subscriptions.razor`'s `OnInitializedAsync`, call `GetSubscriptionsAsync` to
       populate the list on load: render "a clear empty list state rather than an error" when the
       result is empty, and render every returned URL "in the order they were added" when populated
       (FR-002, SC-002) (depends on T014, T016)
@@ -146,10 +146,10 @@ order.
 
 **Purpose**: Final verification across both user stories
 
-- [ ] T018 [P] Run all validation scenarios in quickstart.md end-to-end (empty state, add first,
+- [X] T018 [P] Run all validation scenarios in quickstart.md end-to-end (empty state, add first,
       add second without losing first, accept unvalidated text, reject blank, allow duplicates,
       in-memory-only across restart) against the running backend and frontend
-- [ ] T019 [P] Verify the port/CORS/configuration consistency checklist from `TechStack.md`
+- [X] T019 [P] Verify the port/CORS/configuration consistency checklist from `TechStack.md`
       (backend port, frontend port, `ApiBaseUrl`, CORS allowed origins all agree) per Constitution's
       Development Workflow & Quality Gates section
 

@@ -1,0 +1,77 @@
+@page "/"
+@using RSSFeedReader.UI.Services
+@inject SubscriptionApiClient SubscriptionApiClient
+
+<PageTitle>Subscriptions</PageTitle>
+
+<h1>RSS Feed Subscriptions</h1>
+
+<div class="mb-3">
+    <input @bind="_url" @bind:event="oninput" @onkeydown="HandleKeyDownAsync"
+           placeholder="Enter feed URL" class="form-control d-inline-block w-auto" />
+    <button class="btn btn-primary" @onclick="AddSubscriptionAsync" disabled="@_isAdding">Add</button>
+</div>
+
+@if (_errorMessage is not null)
+{
+    <p class="text-danger">@_errorMessage</p>
+}
+
+@if (_subscriptions.Count == 0)
+{
+    <p><em>No subscriptions yet.</em></p>
+}
+else
+{
+    <ul>
+        @foreach (var subscription in _subscriptions)
+        {
+            <li>@subscription.Url</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<SubscriptionDto> _subscriptions = [];
+    private string _url = string.Empty;
+    private string? _errorMessage;
+    private bool _isAdding;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _subscriptions = await SubscriptionApiClient.GetSubscriptionsAsync();
+    }
+
+    private async Task AddSubscriptionAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_url))
+        {
+            return;
+        }
+
+        _isAdding = true;
+        _errorMessage = null;
+
+        var created = await SubscriptionApiClient.AddSubscriptionAsync(_url);
+
+        if (created is not null)
+        {
+            _subscriptions.Add(created);
+            _url = string.Empty;
+        }
+        else
+        {
+            _errorMessage = "Could not add subscription.";
+        }
+
+        _isAdding = false;
+    }
+
+    private async Task HandleKeyDownAsync(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await AddSubscriptionAsync();
+        }
+    }
+}
